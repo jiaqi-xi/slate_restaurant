@@ -6,4 +6,5 @@
 ./utils/__pycache__
 ./__pycache__
 ./trained/*.zip
-./pmf_rmse_graph.png.DS_Store
+./pmf_rmse_graph.png
+.DS_Store
