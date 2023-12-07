@@ -128,7 +128,7 @@ def load_data(train_percent, val_percent, test_percent):
     reviews = pd.merge(reviews, users, how='inner', on='user_id')
     reviews = reviews.drop(columns='user_id')
     reviews = pd.merge(reviews, restaurants, how='inner', on='business_id')
-    reviews = reviews.drop(columns=['business_id', 'text','review_id','date'])
+    reviews = reviews.drop(columns=['business_id', 'text','date'])
     print("REVIEWS.HEAD() -------------------------------------------------------------------")
     print(reviews.head())
     reviews = reviews.drop(columns=reviews.columns[0], axis=1)
