@@ -34,8 +34,8 @@ class DRRTrainer(object):
         # print("CUDA Memory Allocated: ", torch.cuda.memory_allocated(self.device_id))
         # print("CUDA Memory Reserved: ", torch.cuda.memory_reserved(self.device_id) / 1000000000, "GB")
         # torch.cuda.empty_cache()
-        # self.device = torch.device('cuda:{}'.format(self.device_id) if cuda else "cpu")
-        self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        self.device = torch.device('cuda:{}'.format(self.device_id) if cuda else "cpu")
+        # self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
         print("Current PyTorch Device: ", self.device)
 
         # Import Data
@@ -98,22 +98,16 @@ class DRRTrainer(object):
         print("Model weights initialized, copied to target")
 
         # Move models and data to CUDA
-        # if cuda:
-        #     # models
-        #     self.reward_function.cuda()
-        #     self.state_rep_net.cuda()
-        #     self.actor_net.cuda()
-        #     self.target_actor_net.cuda()
-        #     self.critic_net.cuda()
-        #     self.target_critic_net.cuda()
-            # self.reward_function.mps()
-            # self.state_rep_net.mps()
-            # self.actor_net.mps()
-            # self.target_actor_net.mps()
-            # self.critic_net.mps()
-            # self.target_critic_net.mps()
+        if cuda:
+            # models
+            self.reward_function.cuda()
+            self.state_rep_net.cuda()
+            self.actor_net.cuda()
+            self.target_actor_net.cuda()
+            self.critic_net.cuda()
+            self.target_critic_net.cuda()
 
-            # print("All models, train data, and user embeddings data moved to MPS")
+            print("All models, train data, and user embeddings data moved to CUDA")
 
         # Init optimizers
         self.state_rep_optimizer = torch.optim.Adam(self.state_rep_net.parameters(), lr=self.config.lr_state_rep,
@@ -136,10 +130,10 @@ class DRRTrainer(object):
 
     def learn(self):
         # Transfer training data to device
-        print(type(self.train_data))
-        self.train_data = self.train_data.to(torch.float32)
+        # print(type(self.train_data))
+        # self.train_data = self.train_data.to(torch.float32)
         # self.train_data = torch.from_numpy(self.train_data)
-        print(type(self.train_data))
+        # print(type(self.train_data))
         self.train_data = self.train_data.to(self.device)
 
         # Init buffers
