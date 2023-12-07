@@ -100,3 +100,54 @@ class PMF(nn.Module):
     def predict(self, users_index, items_index):
         preds = self.forward(users_index, items_index)
         return preds
+
+
+
+class PMF_new(nn.Module):
+    def __init__(self, n_users, n_items, n_factors=20, is_sparse=False, n_categories=1500):
+        super(PMF_new, self).__init__()
+        self.n_users = n_users
+        self.n_items = n_items
+        self.n_factors = n_factors
+        self.n_categories = n_categories
+
+        # User embeddings
+        self.user_embeddings = nn.Embedding(n_users, n_factors, sparse=is_sparse)
+        self.user_embeddings.weight.data.uniform_(-0.01, 0.01)
+
+        self.user_avg_star_embeddings = nn.Embedding(n_users, 1)
+        self.user_avg_star_embeddings.weight.data.uniform_(-0.01, 0.01)
+
+        # Item embeddings
+        self.item_embeddings = nn.Embedding(n_items, n_factors, sparse=is_sparse)
+        self.item_embeddings.weight.data.uniform_(-0.01, 0.01)
+
+        self.item_category_embeddings = nn.Embedding(n_categories, n_factors, sparse=is_sparse)
+        self.item_category_embeddings.weight.data.uniform_(-0.01, 0.01)
+
+        # Embeddings for biases
+        self.ub = nn.Embedding(n_users, 1)
+        self.ib = nn.Embedding(n_items, 1)
+        self.ub.weight.data.uniform_(-0.01, 0.01)
+        self.ib.weight.data.uniform_(-0.01, 0.01)
+
+    def forward(self, users_index, items_index, user_avg_star, item_category):
+        # User embeddings
+        user_id_h = self.user_embeddings(users_index)
+        user_avg_star_h = self.user_avg_star_embeddings(user_avg_star)
+
+        # Item embeddings
+        item_id_h = self.item_embeddings(items_index)
+        item_category_h = self.item_category_embeddings(item_category)
+
+        # Combined user and item embeddings
+        user_combined = torch.cat([user_id_h, user_avg_star_h], dim=1)
+        item_combined = torch.cat([item_id_h, item_category_h], dim=1)
+
+        # Prediction
+        R_h = (user_combined * item_combined).sum(dim=1, keepdim=True) + self.ub(users_index) + self.ib(items_index)
+        return R_h.view(-1)
+
+    def predict(self, users_index, items_index, user_avg_star, item_category):
+        preds = self.forward(users_index, items_index, user_avg_star, item_category)
+        return preds
