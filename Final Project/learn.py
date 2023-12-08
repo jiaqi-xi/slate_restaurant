@@ -130,7 +130,7 @@ class DRRTrainer(object):
 
     def learn(self):
         # Transfer training data to device
-        # print(type(self.train_data))
+        #print(type(self.train_data))
         # self.train_data = self.train_data.to(torch.float32)
         # self.train_data = torch.from_numpy(self.train_data)
         # print(type(self.train_data))
@@ -153,6 +153,7 @@ class DRRTrainer(object):
 
         # Get users, shuffle, andgo through array
         user_idxs = np.array(list(self.users.values()))
+        
         np.random.shuffle(user_idxs)
 
         # Start episodes
@@ -184,7 +185,7 @@ class DRRTrainer(object):
             # Remove item embeddings from candidate item set
             ignored_items = []
             for i in range(self.config.history_buffer_size):
-                emb = candidate_items[pos_user_reviews[i, self.i]]
+                emb = candidate_items[pos_user_reviews[i, self.i].int()]
                 history_buffer.push(emb.detach().clone())
 
             # Initialize rewards tracker
@@ -668,12 +669,12 @@ class DRRTrainer(object):
                 continue
 
             # Sort user reviews by timestamp
-            user_reviews = user_reviews[user_reviews[:, self.ti].sort()[1]]
-            pos_user_reviews = pos_user_reviews[pos_user_reviews[:, self.ti].sort()[1]]
+            #user_reviews = user_reviews[user_reviews[:, self.ti].sort()[1]]
+            #pos_user_reviews = pos_user_reviews[pos_user_reviews[:, self.ti].sort()[1]]
 
             # Copy item embeddings to candidate item embeddings set
             candidate_items = self.item_embeddings.detach().clone().to(self.device)
-            user_candidate_items = self.item_embeddings[user_reviews[:, self.i]].detach().clone().to(self.device)
+            user_candidate_items = self.item_embeddings[user_reviews[:, self.i].int()].detach().clone().to(self.device)
 
             # Extract user embedding tensor
             user_emb = self.user_embeddings[e]
@@ -682,7 +683,7 @@ class DRRTrainer(object):
             # Remove item embeddings from candidate item set
             ignored_items = []
             for i in range(self.config.history_buffer_size):
-                emb = candidate_items[pos_user_reviews[i, self.i]]
+                emb = candidate_items[pos_user_reviews[i, self.i].int()]
                 history_buffer.push(emb.detach().clone())
                 # ignored_items.append(pos_user_reviews[i, self.i])
 
@@ -708,10 +709,10 @@ class DRRTrainer(object):
                 # Calculate ranking scores across items, discard ignored items
                 ranking_scores = candidate_items @ action
                 rec_items = torch.stack(ignored_items) if len(ignored_items) > 0 else []
-                ranking_scores[rec_items[:, self.i] if len(ignored_items) > 0 else []] = -float("inf")
+                ranking_scores[rec_items[:, self.i].int() if len(ignored_items) > 0 else []] = -float("inf")
 
                 # Get recommended item
-                rec_item_idx = torch.argmax(ranking_scores[user_reviews[:, self.i]])
+                rec_item_idx = torch.argmax(ranking_scores[user_reviews[:, self.i].int()])
                 rec_item_emb = user_candidate_items[rec_item_idx]
 
                 # Get item reward
@@ -817,12 +818,12 @@ class DRRTrainer(object):
                 continue
 
             # Sort user reviews by timestamp
-            user_reviews = user_reviews[user_reviews[:, self.ti].sort()[1]]
-            pos_user_reviews = pos_user_reviews[pos_user_reviews[:, self.ti].sort()[1]]
+            #user_reviews = user_reviews[user_reviews[:, self.ti].sort()[1]]
+            #pos_user_reviews = pos_user_reviews[pos_user_reviews[:, self.ti].sort()[1]]
 
             # Copy item embeddings to candidate item embeddings set
             candidate_items = self.item_embeddings.detach().clone().to(self.device)
-            user_candidate_items = self.item_embeddings[user_reviews[:, self.i]].detach().clone().to(self.device)
+            user_candidate_items = self.item_embeddings[user_reviews[:, self.i].int()].detach().clone().to(self.device)
 
             # Extract user embedding tensor
             user_emb = self.user_embeddings[e]
@@ -832,7 +833,7 @@ class DRRTrainer(object):
             # Remove item embeddings from candidate item set
             ignored_items = []
             for i in range(self.config.history_buffer_size):
-                emb = candidate_items[pos_user_reviews[i, self.i]]
+                emb = candidate_items[pos_user_reviews[i, self.i].int()]
                 history_buffer.push(emb.detach().clone())
 
             # Starting item index
@@ -857,10 +858,10 @@ class DRRTrainer(object):
                 # Calculate ranking scores across items, discard ignored items
                 ranking_scores = self.reward_function(user_emb_exp, candidate_item_idxs)
                 rec_items = torch.stack(ignored_items) if len(ignored_items) > 0 else []
-                ranking_scores[rec_items[:, self.i] if len(ignored_items) > 0 else []] = -float("inf")
+                ranking_scores[rec_items[:, self.i].int() if len(ignored_items) > 0 else []] = -float("inf")
 
                 # Get recommended item
-                rec_item_idx = torch.argmax(ranking_scores[user_reviews[:, self.i]])
+                rec_item_idx = torch.argmax(ranking_scores[user_reviews[:, self.i].int()])
                 rec_item_emb = user_candidate_items[rec_item_idx]
 
                 # Get item reward
